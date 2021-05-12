@@ -69,13 +69,103 @@ class CalcController {
     }
     /**Fim função limpa.*/
 
+    /** */
+    setLastOperation(value){
+
+        this._operation[this._operation.length - 1] = value;
+
+    }
+
+    /**Função troca de operador */
+    isOperador(value){
+
+        return (['+', '-', '*', '%', '/'].indexOf(value) > -1);//verifica o operador.
+
+    }
+    /**Fim função troca de operador.*/
+
+    /**Função veficica obj no array e calcula se tiver mais que 3 obj.*/
+    pushOperation(value){
+        
+        this._operation.push(value);
+
+        if(this._operation.length > 3){
+            
+            this.calc();
+
+
+        }
+
+    }
+    /**Fim função verifica obj.*/
+
+    /**Função calcula os valores.*/
+    calc(){
+
+        let last = this._operation.pop();//quarda obj da ultima possição do array. 
+
+        //join() (converte obj de um array em uma strig).
+        //eval() (função de calcula valores da string).
+        let result = eval(this._operation.join(""));
+
+        this._operation = [result, last]
+
+    }
+    /**Fim calcula.*/
+
+    setLastNumberToDisplay(){
+
+        
+
+    }
+
     /**Função operador.*/
     addOperation(value){
 
-        this._operation.push(valuer);//push() (adiciona valor no fim do array).
+        if(isNaN(this.getLastOperation())){//isNaN() (determina se um valor é um número ilegal (não é um número)).
+            
+            if(this.isOperador(value)){
 
+                this.setLastOperation(value);
+
+            }else if(isNaN(value)){
+
+                this.pushOperation(value);
+
+            }else{
+
+                this.pushOperation(value);  
+
+            }
+
+
+        }else{
+
+            if(this.isOperador(value)){
+
+
+
+            }else{
+
+                let newValue = this.getLastOperation().toString() + value.toString();//toString() Concatena valores.
+                this._setLastOperation(parseInt(newValue));//push() (adiciona valor no fim do array).
+
+                //atualiza e exibe numerlo n o display.
+                this.setLastNumberToDisplay();
+
+            }
+
+        }
+        
     }
     /**Fim operador.*/
+
+    /**Função p/ pegar ultima possição do array.*/
+    getLastOperation(){
+
+        this._operation[this._operation.length-1];
+
+    }
 
     /**Função error */
     setError(){
@@ -99,27 +189,31 @@ class CalcController {
                 break;
 
             case 'soma':
-                this.clearEntry();
+                this.addOperation('+');
                 break;
 
             case 'subtracao':
-                this.clearEntry();
+                this.addOperation('-');
                 break;
             
             case 'divisao':
-                this.clearEntry();
+                this.addOperation('/');
                 break;
 
             case 'multiplicacao':
-                this.clearEntry();
+                this.addOperation('*');
                 break;
             
             case 'porcento':
-                this.clearEntry();
+                this.addOperation('%');
                 break;
 
             case 'igual':
-                this.clearEntry();
+
+                break;
+
+            case 'ponto':
+                this.addOperation('.');
                 break;
 
             case '0':
@@ -132,7 +226,7 @@ class CalcController {
             case '7':
             case '8':
             case '9':
-                this._operation(parseIntvalue);
+                this.addOperation(parseInt(value));
                 break;
 
             default:
