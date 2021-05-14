@@ -3,6 +3,9 @@ class CalcController {
     /**Construtor Display, hora e data (privados).*/
     constructor(){
 
+        this._lastOperator = '';
+        this._lastNumber = '';
+
         this._operation = [];
         this.locale = 'pt-br';
         this._displayCalcEl = document.querySelector("#display");//querySelector (da acesso a obj no DOM).
@@ -27,6 +30,8 @@ class CalcController {
 
         }, 1000);
 
+        this.setLastNumberToDisplay();
+
     }
     /**Fim inicializa display.*/
 
@@ -42,7 +47,7 @@ class CalcController {
     /**Função click botao (multiplos eventos)*/
     addEventListenerAll(element, events, fn){
 
-        //split() cinverte strings em array
+        //split() converte strings em array
         //forEach() recebe o array que contem os eventos e percprre um evento por vez.
         events.split(' ').forEach(event => {
 
@@ -57,6 +62,10 @@ class CalcController {
     clearAll(){
 
         this._operation = [];//recebe um array limpo.
+        this._lastNumber = '';
+        this._lastOperator = '';
+
+        this.setLastNumberToDisplay();
 
     }
     /**Fim função limpa display.*/
@@ -65,6 +74,8 @@ class CalcController {
     clearEntry(){
 
         this._operation.pop();//pop() (remove valor no fim de array).
+
+        this.setLastNumberToDisplay();
 
     }
     /**Fim função limpa.*/
@@ -99,25 +110,95 @@ class CalcController {
     }
     /**Fim função verifica obj.*/
 
+    getResult(){
+
+        return eval(this._operation.join(""));
+
+    }
+
     /**Função calcula os valores.*/
     calc(){
 
-        let last = this._operation.pop();//quarda obj da ultima possição do array. 
+        let last = '';//quarda obj da ultima possição do array.
+
+        this._lastOperator = this.getLastItem();
+
+        if(this._operation.length < 3 ){
+
+            let firstItem = this._operation[0];
+
+            this._operation = [firstItem, this._lastOperator, this._lastNumber];
+
+        }
+
+        if(this._operation.length > 3){
+
+            last = this._operation.pop();
+
+            this._lastNumber = this.getResult();
+
+        }else if(this._operation.length == 3){
+
+            this._lastNumber = this.getResult(false);  
+
+        }
 
         //join() (converte obj de um array em uma strig).
         //eval() (função de calcula valores da string).
-        let result = eval(this._operation.join(""));
+        let result = this.getResult();
 
-        this._operation = [result, last]
+        if(last == '%'){//calcula a porcentagem.
+
+            result /= 100;
+
+        }else{
+
+            this.CurrentDate._operation = [result, last];
+
+        }
+
+        this.setLastNumberToDisplay();
 
     }
     /**Fim calcula.*/
 
-    setLastNumberToDisplay(){
+    getLastItem(isOperador = true){
 
-        
+        let lastItem;
+
+        for(let i = this._operation.length - 1; i >= 0; i--){
+
+            if(this.isOperador(this._operation[i]) == isOperador){
+
+                lastItem = this._operation[i];
+
+                break;
+
+            }
+
+        }
+
+        if(!lastItem){
+
+            lastItem = (isOperador) ? this._lastOperator : this._lastNumber;
+
+        }
+
+        return lastItem;
 
     }
+
+    /**Função p/ percorrer o array e encontrar ultimo valor.*/
+    setLastNumberToDisplay(){
+
+        let lastNumber = this.getLastItem(false);
+
+        if(!lastNumber) lastNumber = 0;
+
+        this.displayCalc = lastNumber;
+
+    }
+    /**Função percorre array.*/
 
     /**Função operador.*/
     addOperation(value){
@@ -128,13 +209,11 @@ class CalcController {
 
                 this.setLastOperation(value);
 
-            }else if(isNaN(value)){
+            }else{
 
                 this.pushOperation(value);
 
-            }else{
-
-                this.pushOperation(value);  
+                this.setLastNumberToDisplay();
 
             }
 
@@ -143,12 +222,12 @@ class CalcController {
 
             if(this.isOperador(value)){
 
-
+                this.pushOperation(value);
 
             }else{
 
                 let newValue = this.getLastOperation().toString() + value.toString();//toString() Concatena valores.
-                this._setLastOperation(parseInt(newValue));//push() (adiciona valor no fim do array).
+                this._setLastOperation(newValue);//push() (adiciona valor no fim do array).
 
                 //atualiza e exibe numerlo n o display.
                 this.setLastNumberToDisplay();
@@ -174,6 +253,28 @@ class CalcController {
 
     }
     /**Fim função error.*/
+
+    /**Função que add o ponto.*/
+    addDot(){
+
+        let lastOperation = this.getLastOperation();
+
+        if(typeof lastOperation === 'strig' && lastOperation.split(' ').indexOf('.') > -1) return;//nao deixa add o ponto a mais.
+
+        if(this.isOperador(lastOperation) || !lastOperation){
+
+            this.pushOperation('0.');
+
+        }else{
+
+            this.setLastOperation(lastOperation.toString() + '.');
+
+        }
+
+        this.setLastNumberToDisplay();
+
+    }
+    /**Fim função ponto.*/
 
     /**Ações da calculadora.*/
     execBtn(value){
@@ -209,11 +310,11 @@ class CalcController {
                 break;
 
             case 'igual':
-
+                this.calc();
                 break;
 
             case 'ponto':
-                this.addOperation('.');
+                this.addDot();
                 break;
 
             case '0':
@@ -239,7 +340,7 @@ class CalcController {
     }
     /**Fim ações p/ o botao clicado.*/
 
-    /**Evento dos botões.*/
+    /**Evento de click dos botoes da calculadora.*/
     initButtonsEvents(){
 
         let buttons = document.querySelectorAll("#buttons > g, #parts > g");//querySelectorAll (da acessor a varios obj no DOM).
@@ -263,7 +364,7 @@ class CalcController {
         })
 
     }
-    /**Fim evento dos botoes.*/
+    /**Fim evento de click.*/
 
     /**GET/SET hora exibido no display.*/
     get displayTime(){
